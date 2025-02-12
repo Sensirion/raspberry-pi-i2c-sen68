@@ -24,6 +24,7 @@ Use the following pins to connect your SEN68:
 | SDA | green | Pin 3
 | SCL | yellow | Pin 5
 
+
 <img src="images/raspi-i2c-pinout-3.3V.png" width="400px">
 
 
