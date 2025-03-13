@@ -3,7 +3,7 @@
  *
  * Generator:     sensirion-driver-generator 1.1.2
  * Product:       sen68
- * Model-Version: 1.3.0
+ * Model-Version: 1.4.0
  */
 /*
  * Copyright (c) 2025, Sensirion AG
@@ -63,8 +63,10 @@ typedef enum {
     SEN68_SET_VOC_ALGORITHM_STATE_CMD_ID = 0x6181,
     SEN68_GET_VOC_ALGORITHM_STATE_CMD_ID = 0x6181,
     SEN68_ACTIVATE_SHT_HEATER_CMD_ID = 0x6765,
+    SEN68_GET_SHT_HEATER_MEASUREMENTS_CMD_ID = 0x6790,
     SEN68_GET_PRODUCT_NAME_CMD_ID = 0xd014,
     SEN68_GET_SERIAL_NUMBER_CMD_ID = 0xd033,
+    SEN68_GET_VERSION_CMD_ID = 0xd100,
     SEN68_READ_DEVICE_STATUS_CMD_ID = 0xd206,
     SEN68_READ_AND_CLEAR_DEVICE_STATUS_CMD_ID = 0xd210,
     SEN68_DEVICE_RESET_CMD_ID = 0xd304,
@@ -731,15 +733,37 @@ int16_t sen68_get_voc_algorithm_state(uint8_t* state, uint16_t state_size);
  *
  * This command allows to use the inbuilt heater in SHT sensor to reverse creep
  * at high humidity. This command activates the SHT sensor heater with 200mW for
- * 1s. The heater is then automatically deactivated again. Wait at least 20s
- * after this command before starting a measurement to get coherent temperature
- * values (heating consequence to disappear).
+ * 1s. The heater is then automatically deactivated again. The
+ * "get_sht_heater_measurements" command can be used to check if the heater has
+ * finished. Wait at least 20s after this command before starting a measurement
+ * to get coherent temperature values (heating consequence to disappear).
  *
  * @note This command is only available in idle mode.
  *
  * @return error_code 0 on success, an error code otherwise.
  */
 int16_t sen68_activate_sht_heater();
+
+/**
+ * @brief Get the measurement values when the SHT sensor heating is finished.
+ *
+ * Get the measured values when the SHT sensor heating is triggerd. If the
+ * heating is not finished, the returned humidity and temperature values are
+ * 0x7FFF.
+ *
+ * @param[out] humidity Value is scaled with factor 100: RH [%] = value / 100
+ * *Note: If this value is not available, 0x7FFF is returned.*
+ * @param[out] temperature Value is scaled with factor 200: T [°C] = value / 200
+ * *Note: If this value is not available, 0x7FFF is returned.*
+ *
+ * @note This command is only availble in idle mode. This command must be used
+ * after the "activate_sht_heater" command. The get_sht_heater_measurements
+ * command can be queried every 0.05s to get the measurements.
+ *
+ * @return error_code 0 on success, an error code otherwise.
+ */
+int16_t sen68_get_sht_heater_measurements(int16_t* humidity,
+                                          int16_t* temperature);
 
 /**
  * @brief sen68_get_product_name
@@ -766,6 +790,19 @@ int16_t sen68_get_product_name(int8_t* product_name,
  */
 int16_t sen68_get_serial_number(int8_t* serial_number,
                                 uint16_t serial_number_size);
+
+/**
+ * @brief sen68_get_version
+ *
+ * Gets the version information for the hardware, firmware and communication
+ * protocol.
+ *
+ * @param[out] firmware_major Firmware major version number.
+ * @param[out] firmware_minor Firmware minor version number.
+ *
+ * @return error_code 0 on success, an error code otherwise.
+ */
+int16_t sen68_get_version(uint8_t* firmware_major, uint8_t* firmware_minor);
 
 /**
  * @brief sen68_read_device_status
